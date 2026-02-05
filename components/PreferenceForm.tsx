@@ -172,3 +172,55 @@ const PreferenceForm: React.FC<PreferenceFormProps> = ({ onSubmit, isLoading }) 
             <select name="cameraPriority" value={prefs.cameraPriority} onChange={handleChange} className={inputClasses}>
               <option value={PriorityLevel.LOW}>Low - Just for basics</option>
               <option value={PriorityLevel.MEDIUM}>Medium - Great for socials</option>
+              <option value={PriorityLevel.HIGH}>High - Professional Grade</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClasses}>Battery Life</label>
+            <select name="batteryPriority" value={prefs.batteryPriority} onChange={handleChange} className={inputClasses}>
+              <option value={PriorityLevel.LOW}>Moderate</option>
+              <option value={PriorityLevel.MEDIUM}>Solid Full Day</option>
+              <option value={PriorityLevel.HIGH}>Extreme / Fast Charging</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClasses}>Build Material</label>
+            <select name="buildQuality" value={prefs.buildQuality} onChange={handleChange} className={inputClasses}>
+              <option value={BuildMaterial.GLASS}>Glass (Premium)</option>
+              <option value={BuildMaterial.METAL}>Metal (Rugged)</option>
+              <option value={BuildMaterial.PLASTIC}>Plastic (Lightweight)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClasses}>Updates & OS Support</label>
+            <select name="updatesImportance" value={prefs.updatesImportance} onChange={handleChange} className={inputClasses}>
+              <option value={PriorityLevel.LOW}>Not a priority</option>
+              <option value={PriorityLevel.MEDIUM}>Standard (2-3 years)</option>
+              <option value={PriorityLevel.HIGH}>Critical (Long-term support)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98]"
+      >
+        {isLoading ? (
+          <span className="flex items-center justify-center">
+            <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing Marketplace...
+          </span>
+        ) : (
+          'Find My Matches'
+        )}
+      </button>
+    </form>
+  );
+};
+
+export default PreferenceForm;

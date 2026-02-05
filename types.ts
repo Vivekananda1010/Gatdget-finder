@@ -61,8 +61,18 @@ export interface PhoneRecommendation {
   battery: string;
   whyThisPhone: string;
   keyFeatures: string[];
+  pros: string[];
+  cons: string[];
+  bestUseCase: string;
+  matchScore: number;
+  buyLink: string;
 }
 
 export interface GeminiResponse {
   recommendations: PhoneRecommendation[];
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
 }
