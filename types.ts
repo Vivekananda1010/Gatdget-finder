@@ -34,7 +34,13 @@ export enum BuildMaterial {
   GLASS = 'GLASS'
 }
 
+export enum UserKnowledgeLevel {
+  CASUAL = 'CASUAL',
+  EXPERT = 'EXPERT'
+}
+
 export interface UserPreferences {
+  knowledgeLevel: UserKnowledgeLevel;
   maxPrice: number;
   currency: string;
   country: string;
@@ -51,6 +57,7 @@ export interface UserPreferences {
   audioQuality: AudioType;
   buildQuality: BuildMaterial;
   updatesImportance: PriorityLevel;
+  simpleGoals: string[]; // Updated to array for multiple selections
 }
 
 export interface Retailer {

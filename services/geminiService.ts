@@ -13,16 +13,29 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
     ? "IMPORTANT: Prioritize ultra-premium devices that offer the maximum possible performance and features."
     : "Focus on providing the best overall value within the user's requirements.";
 
+  // Handle Gaming Cooling Logic
+  const coolingRequirement = (preferences.knowledgeLevel === 'EXPERT' && preferences.gamingPerformance === 'HEAVY') || 
+                            (preferences.knowledgeLevel === 'CASUAL' && preferences.simpleGoals.includes('Gaming'))
+    ? "FOR GAMING: The user is a heavy gamer. You MUST prioritize phones with advanced thermal management systems (Vapor Chambers, graphene sheets, or active cooling) to prevent thermal throttling and ensure sustained flagship performance."
+    : "";
+
+  // Handle Casual vs Expert Logic in the prompt
+  const technicalContext = preferences.knowledgeLevel === 'EXPERT' 
+    ? `- Performance Level: ${preferences.processorPerformance} (Gaming Profile: ${preferences.gamingPerformance})
+       - Camera/Battery Priority: Camera ${preferences.cameraPriority}, Battery ${preferences.batteryPriority}
+       - Technical Specs: 5G ${preferences.support5G ? 'Required' : 'Optional'}, ${preferences.displayType} Display, ${preferences.audioQuality} Audio, ${preferences.buildQuality} Build.`
+    : `- Primary Goals: ${preferences.simpleGoals.length > 0 ? preferences.simpleGoals.join(', ') : 'General Usage'}
+       - The user is a casual consumer. Interpret these goals into technical requirements (e.g. "Photography" means high-end ISP/Sensors, "Work" means productivity features and battery).`;
+
   const prompt = `As a world-class smartphone consultant, suggest exactly 3 best mobile phones (models from late 2023-2025) that perfectly match these preferences:
   
   PREFERENCES:
   - Budget Context: ${budgetInstruction}
   - Region: ${preferences.country}
   - Brand Preference: ${preferences.brandPreference || 'Any'}
-  - Performance Level: ${preferences.processorPerformance} (Gaming Profile: ${preferences.gamingPerformance})
-  - Camera/Battery Priority: Camera ${preferences.cameraPriority}, Battery ${preferences.batteryPriority}
-  - Technical Specs: 5G ${preferences.support5G ? 'Required' : 'Optional'}, ${preferences.displayType} Display, ${preferences.audioQuality} Audio, ${preferences.buildQuality} Build.
+  ${technicalContext}
 
+  ${coolingRequirement}
   ${premiumInstruction}
 
   For each phone, return a detailed JSON object. Ensure the "priceEstimate" field matches the local pricing in ${preferences.country} using the currency ${preferences.currency}.
