@@ -35,9 +35,11 @@ export enum BuildMaterial {
 }
 
 export interface UserPreferences {
-  minPrice: number;
   maxPrice: number;
   currency: string;
+  country: string;
+  unlimitedBudget: boolean;
+  prioritizePremium: boolean;
   cameraPriority: PriorityLevel;
   batteryPriority: PriorityLevel;
   gamingPerformance: GamingLevel;
@@ -49,6 +51,11 @@ export interface UserPreferences {
   audioQuality: AudioType;
   buildQuality: BuildMaterial;
   updatesImportance: PriorityLevel;
+}
+
+export interface Retailer {
+  name: string;
+  url: string;
 }
 
 export interface PhoneRecommendation {
@@ -66,7 +73,7 @@ export interface PhoneRecommendation {
   cons: string[];
   bestUseCase: string;
   matchScore: number;
-  buyLink: string;
+  availableRetailers: Retailer[];
 }
 
 export interface GeminiResponse {

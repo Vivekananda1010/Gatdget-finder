@@ -5,20 +5,32 @@ import { UserPreferences, PhoneRecommendation, GeminiResponse } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export async function getPhoneRecommendations(preferences: UserPreferences): Promise<PhoneRecommendation[]> {
+  const budgetInstruction = preferences.unlimitedBudget 
+    ? "The user has an UNLIMITED BUDGET. Completely ignore the price constraints and suggest the absolute best, most premium flagship smartphones available in the market (e.g., iPhone 16 Pro Max, Samsung S24 Ultra, Pixel 9 Pro XL). Focus on maximum hardware capability."
+    : `Suggest phones within the budget of up to ${preferences.maxPrice} ${preferences.currency}.`;
+
+  const premiumInstruction = (preferences.prioritizePremium || preferences.unlimitedBudget)
+    ? "IMPORTANT: Prioritize ultra-premium devices that offer the maximum possible performance and features."
+    : "Focus on providing the best overall value within the user's requirements.";
+
   const prompt = `As a world-class smartphone consultant, suggest exactly 3 best mobile phones (models from late 2023-2025) that perfectly match these preferences:
   
   PREFERENCES:
-  - Budget: ${preferences.minPrice} - ${preferences.maxPrice} ${preferences.currency}
-  - Brand: ${preferences.brandPreference || 'Any'}
-  - Performance: ${preferences.processorPerformance} (Gaming: ${preferences.gamingPerformance})
+  - Budget Context: ${budgetInstruction}
+  - Region: ${preferences.country}
+  - Brand Preference: ${preferences.brandPreference || 'Any'}
+  - Performance Level: ${preferences.processorPerformance} (Gaming Profile: ${preferences.gamingPerformance})
   - Camera/Battery Priority: Camera ${preferences.cameraPriority}, Battery ${preferences.batteryPriority}
-  - Technical: 5G ${preferences.support5G ? 'Required' : 'Optional'}, ${preferences.displayType} Display, ${preferences.audioQuality} Audio, ${preferences.buildQuality} Build.
+  - Technical Specs: 5G ${preferences.support5G ? 'Required' : 'Optional'}, ${preferences.displayType} Display, ${preferences.audioQuality} Audio, ${preferences.buildQuality} Build.
 
-  For each phone, return a detailed JSON object. Assign a "matchScore" from 0-100 based on how well it fits.
-  Provide 3 pros and 2-3 cons. 
-  Identify a "bestUseCase" like "The Multimedia Powerhouse" or "Value King".
-  Ensure the "priceEstimate" field uses the selected currency: ${preferences.currency}.
-  Include a realistic "buyLink" to a major retailer (simulated).`;
+  ${premiumInstruction}
+
+  For each phone, return a detailed JSON object. Ensure the "priceEstimate" field matches the local pricing in ${preferences.country} using the currency ${preferences.currency}.
+  Assign a "matchScore" (0-100). Provide 3 pros and 2-3 cons. 
+  Identify a "bestUseCase" like "The Multimedia Powerhouse" or "The Productivity King".
+  
+  CRITICAL: List all major e-commerce platforms where this phone is commonly available in ${preferences.country}. 
+  Provide realistic simulated URLs for each platform in the "availableRetailers" array.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -48,9 +60,19 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
                   cons: { type: Type.ARRAY, items: { type: Type.STRING } },
                   bestUseCase: { type: Type.STRING },
                   matchScore: { type: Type.NUMBER },
-                  buyLink: { type: Type.STRING }
+                  availableRetailers: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        name: { type: Type.STRING },
+                        url: { type: Type.STRING }
+                      },
+                      required: ["name", "url"]
+                    }
+                  }
                 },
-                required: ["id", "name", "brand", "priceEstimate", "display", "processor", "camera", "battery", "whyThisPhone", "keyFeatures", "pros", "cons", "bestUseCase", "matchScore", "buyLink"]
+                required: ["id", "name", "brand", "priceEstimate", "display", "processor", "camera", "battery", "whyThisPhone", "keyFeatures", "pros", "cons", "bestUseCase", "matchScore", "availableRetailers"]
               }
             }
           },
@@ -68,12 +90,12 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
 }
 
 export function createAssistantChat(context: PhoneRecommendation[]): Chat {
-  const contextText = context.map(p => `${p.name} (${p.brand}): ${p.whyThisPhone}. Pros: ${p.pros.join(', ')}. Cons: ${p.cons.join(', ')}.`).join('\n');
+  const contextText = context.map(p => `${p.name} (${p.brand}): ${p.whyThisPhone}. Pros: ${p.pros.join(', ')}. Cons: ${p.cons.join(', ')}. Availability: ${p.availableRetailers.map(r => r.name).join(', ')}.`).join('\n');
   
   return ai.chats.create({
     model: 'gemini-3-flash-preview',
     config: {
-      systemInstruction: `You are a helpful smartphone assistant. The user just received these recommendations:\n${contextText}\nAnswer follow-up questions about these phones or help them choose between them. Be concise and technical.`,
+      systemInstruction: `You are a helpful smartphone assistant. The user just received these recommendations:\n${contextText}\nAnswer follow-up questions about these phones or help them choose between them. Mention where they can buy them if asked. Be concise and technical.`,
     }
   });
 }
