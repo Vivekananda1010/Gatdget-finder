@@ -17,7 +17,7 @@ interface WizardFormProps {
 }
 
 const BRANDS = [
-  'Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Motorola', 'Nothing', 'Sony', 'Asus'
+  'Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Motorola', 'Nothing', 'Sony', 'Asus', 'Realme', 'Oppo', 'Vivo'
 ];
 
 const SIMPLE_GOALS = [
@@ -26,6 +26,16 @@ const SIMPLE_GOALS = [
   { id: 'Work', label: 'Work & Productivity', icon: '💼', desc: 'Multitasking, Battery' },
   { id: 'Casual', label: 'Casual Use', icon: '📱', desc: 'Reliability, Value' },
   { id: 'Battery', label: 'Long Endurance', icon: '🔋', desc: 'Charging, Capacity' }
+];
+
+const RAM_STORAGE_OPTIONS = [
+  "6GB / 128GB (Standard)",
+  "8GB / 128GB (Mainstream)",
+  "8GB / 256GB (Balanced)",
+  "12GB / 256GB (Performance)",
+  "12GB / 512GB (High Capacity)",
+  "16GB / 512GB (Pro Creator)",
+  "24GB / 1TB (Ultra-Premium)"
 ];
 
 const COUNTRY_CURRENCY_MAP: Record<string, string> = {
@@ -48,7 +58,7 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
     gamingPerformance: GamingLevel.MID,
     brandPreference: '',
     processorPerformance: ProcessorLevel.BALANCED,
-    minRamStorage: '8GB / 128GB',
+    minRamStorage: '8GB / 128GB (Mainstream)',
     support5G: true,
     displayType: DisplayType.AMOLED,
     audioQuality: AudioType.STEREO,
@@ -72,6 +82,16 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
     });
   };
 
+  const toggleBrand = (brand: string) => {
+    setPrefs(prev => {
+      const selected = prev.brandPreference ? prev.brandPreference.split(', ') : [];
+      const newSelected = selected.includes(brand) 
+        ? selected.filter(b => b !== brand)
+        : [...selected, brand];
+      return { ...prev, brandPreference: newSelected.join(', ') };
+    });
+  };
+
   const toggleSimpleGoal = (goalId: string) => {
     setPrefs(prev => {
       const goals = prev.simpleGoals || [];
@@ -89,6 +109,42 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
 
   const inputClasses = "w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-white transition-all hover:border-slate-600";
   const labelClasses = "block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2";
+
+  const BrandSelector = () => (
+    <div className="space-y-3">
+      <label className={labelClasses}>Preferred Brands</label>
+      <div className="flex flex-wrap gap-2">
+        {BRANDS.map(brand => {
+          const isSelected = prefs.brandPreference.split(', ').includes(brand);
+          return (
+            <button
+              key={brand}
+              type="button"
+              onClick={() => toggleBrand(brand)}
+              className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${
+                isSelected 
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30' 
+                : 'bg-slate-900 border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {brand}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setPrefs(p => ({ ...p, brandPreference: '' }))}
+          className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${
+            prefs.brandPreference === '' 
+            ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30' 
+            : 'bg-slate-900 border-slate-700 text-slate-500 hover:border-slate-500'
+          }`}
+        >
+          Any Brand
+        </button>
+      </div>
+    </div>
+  );
 
   if (step === 0) {
     return (
@@ -160,6 +216,7 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
                     <div className={`w-4 h-4 bg-white rounded-full transition-transform ${prefs.unlimitedBudget ? 'translate-x-6' : ''}`} />
                   </div>
                 </div>
+                <BrandSelector />
               </div>
             </div>
           )}
@@ -184,8 +241,12 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
                   </select>
                 </div>
                 <div>
-                  <label className={labelClasses}>Minimum RAM / Storage</label>
-                  <input type="text" name="minRamStorage" value={prefs.minRamStorage} onChange={handleChange} className={inputClasses} placeholder="e.g. 12GB RAM" />
+                  <label className={labelClasses}>Min RAM / Storage Combo</label>
+                  <select name="minRamStorage" value={prefs.minRamStorage} onChange={handleChange} className={inputClasses}>
+                    {RAM_STORAGE_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -209,9 +270,9 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
                     </select>
                   </div>
                 </div>
-                <div className="mt-6">
-                  <label className={labelClasses}>Preferred Brand Ecosystem</label>
-                  <input type="text" name="brandPreference" value={prefs.brandPreference} onChange={handleChange} className={inputClasses} placeholder="e.g. Apple, Samsung (Optional)" />
+                <div className="mt-6 flex items-center space-x-4 p-5 bg-slate-900 rounded-2xl border border-slate-700/50">
+                  <input type="checkbox" name="support5G" checked={prefs.support5G} onChange={handleChange} className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-indigo-600 cursor-pointer" />
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-tight">Requires 5G Connectivity</span>
                 </div>
              </div>
           )}
@@ -231,7 +292,7 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
     );
   }
 
-  // CASUAL MODE (Simplified journey)
+  // CASUAL MODE
   return (
     <div className="bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 shadow-2xl max-w-2xl mx-auto w-full">
       <div className="flex items-center justify-between mb-8">
@@ -248,7 +309,7 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
             </select>
           </div>
           <div className={`${prefs.unlimitedBudget ? 'opacity-30 pointer-events-none' : ''}`}>
-            <label className={labelClasses}>Max Spending ({prefs.currency})</label>
+            <label className={labelClasses}>Max Budget ({prefs.currency})</label>
             <input type="number" name="maxPrice" value={prefs.maxPrice} onChange={handleChange} className={inputClasses} disabled={prefs.unlimitedBudget} />
           </div>
         </div>
@@ -265,6 +326,8 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
             <div className={`w-4 h-4 bg-white rounded-full transition-transform ${prefs.unlimitedBudget ? 'translate-x-6' : ''}`} />
           </div>
         </div>
+
+        <BrandSelector />
 
         <div>
           <label className={labelClasses}>Select What You Need (Multiple OK)</label>
