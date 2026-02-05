@@ -100,12 +100,12 @@ const App: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 space-y-4 md:space-y-0">
               <div>
                 <span className="text-xs font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4 block">Analysis Complete</span>
-                <h2 className="text-5xl font-black uppercase italic">The Perfect 3</h2>
+                <h2 className="text-5xl font-black uppercase italic">Top {recommendations.length} Matches</h2>
               </div>
-              <p className="text-slate-500 max-w-sm text-sm">Our AI ranked these based on your specific weightings of performance, camera, and budget.</p>
+              <p className="text-slate-500 max-w-sm text-sm">Our AI analyzed the market and identified these models that best align with your specific requirements.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {recommendations.map((phone, idx) => (
                 <PhoneCard 
                   key={phone.id} 

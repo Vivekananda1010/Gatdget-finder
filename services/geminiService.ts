@@ -27,8 +27,8 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
     : `- Primary Goals: ${preferences.simpleGoals.length > 0 ? preferences.simpleGoals.join(', ') : 'General Usage'}
        - The user is a casual consumer. Interpret these goals into technical requirements (e.g. "Photography" means high-end ISP/Sensors, "Work" means productivity features and battery).`;
 
-  const prompt = `As a world-class smartphone consultant, suggest exactly 3 best mobile phones (models from late 2023-2025) that perfectly match these preferences:
-  
+  const prompt = `As a world-class smartphone consultant, suggest a COMPREHENSIVE LIST of all relevant mobile phones (models from late 2023-2025) that match these preferences. Do not limit yourself to 3; suggest all models that would be a good fit for the user's specific needs.
+
   PREFERENCES:
   - Budget Context: ${budgetInstruction}
   - Region: ${preferences.country}
