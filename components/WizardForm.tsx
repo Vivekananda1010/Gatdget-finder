@@ -15,11 +15,26 @@ interface WizardFormProps {
   isLoading: boolean;
 }
 
+const BRANDS = [
+  'Apple', 'Samsung', 'Google', 'OnePlus', 'Xiaomi', 'Motorola', 'Nothing', 'Sony', 'Asus'
+];
+
+const CURRENCIES = [
+  { code: 'USD', symbol: '$' },
+  { code: 'EUR', symbol: '€' },
+  { code: 'GBP', symbol: '£' },
+  { code: 'INR', symbol: '₹' },
+  { code: 'JPY', symbol: '¥' },
+  { code: 'AUD', symbol: 'A$' },
+  { code: 'CAD', symbol: 'C$' }
+];
+
 const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
   const [step, setStep] = useState(1);
   const [prefs, setPrefs] = useState<UserPreferences>({
     minPrice: 400,
     maxPrice: 1000,
+    currency: 'USD',
     cameraPriority: PriorityLevel.MEDIUM,
     batteryPriority: PriorityLevel.MEDIUM,
     gamingPerformance: GamingLevel.MID,
@@ -42,42 +57,107 @@ const WizardForm: React.FC<WizardFormProps> = ({ onSubmit, isLoading }) => {
     }));
   };
 
+  const toggleBrand = (brand: string) => {
+    setPrefs(prev => {
+      const selectedBrands = prev.brandPreference ? prev.brandPreference.split(', ').filter(b => b !== 'Any') : [];
+      let newBrands: string[];
+      
+      if (selectedBrands.includes(brand)) {
+        newBrands = selectedBrands.filter(b => b !== brand);
+      } else {
+        newBrands = [...selectedBrands, brand];
+      }
+      
+      return {
+        ...prev,
+        brandPreference: newBrands.length > 0 ? newBrands.join(', ') : ''
+      };
+    });
+  };
+
   const nextStep = () => setStep(s => Math.min(s + 1, 4));
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
-  const inputClasses = "w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-white";
+  const inputClasses = "w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-white transition-all";
   const labelClasses = "block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2";
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 shadow-2xl max-w-2xl mx-auto">
+    <div className="bg-slate-800/50 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 shadow-2xl max-w-2xl mx-auto w-full">
       {/* Progress */}
       <div className="flex justify-between mb-8 relative">
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-700 -z-10 -translate-y-1/2"></div>
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step >= i ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'}`}>
+          <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step >= i ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)]' : 'bg-slate-800 text-slate-500'}`}>
             {i}
           </div>
         ))}
       </div>
 
-      <div className="min-h-[300px]">
+      <div className="min-h-[350px]">
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-2xl font-bold mb-6">Budget & Identity</h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className={labelClasses}>Min Budget ($)</label>
-                  <input type="number" name="minPrice" value={prefs.minPrice} onChange={handleChange} className={inputClasses} />
+                  <label className={labelClasses}>Currency</label>
+                  <select name="currency" value={prefs.currency} onChange={handleChange} className={inputClasses}>
+                    {CURRENCIES.map(c => (
+                      <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className={labelClasses}>Max Budget ($)</label>
-                  <input type="number" name="maxPrice" value={prefs.maxPrice} onChange={handleChange} className={inputClasses} />
+                  <label className={labelClasses}>Min Budget</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+                      {CURRENCIES.find(c => c.code === prefs.currency)?.symbol}
+                    </span>
+                    <input type="number" name="minPrice" value={prefs.minPrice} onChange={handleChange} className={`${inputClasses} pl-8`} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClasses}>Max Budget</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+                      {CURRENCIES.find(c => c.code === prefs.currency)?.symbol}
+                    </span>
+                    <input type="number" name="maxPrice" value={prefs.maxPrice} onChange={handleChange} className={`${inputClasses} pl-8`} />
+                  </div>
                 </div>
               </div>
               <div>
-                <label className={labelClasses}>Preferred Brand</label>
-                <input type="text" name="brandPreference" placeholder="e.g. Samsung, Apple, Any" value={prefs.brandPreference} onChange={handleChange} className={inputClasses} />
+                <label className={labelClasses}>Preferred Brands</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {BRANDS.map(brand => {
+                    const isSelected = prefs.brandPreference.split(', ').includes(brand);
+                    return (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => toggleBrand(brand)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
+                          isSelected 
+                          ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' 
+                          : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'
+                        }`}
+                      >
+                        {brand}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setPrefs(p => ({ ...p, brandPreference: '' }))}
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
+                      prefs.brandPreference === '' 
+                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' 
+                      : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'
+                    }`}
+                  >
+                    Any
+                  </button>
+                </div>
               </div>
             </div>
           </div>

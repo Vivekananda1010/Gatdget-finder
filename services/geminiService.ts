@@ -8,7 +8,7 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
   const prompt = `As a world-class smartphone consultant, suggest exactly 3 best mobile phones (models from late 2023-2025) that perfectly match these preferences:
   
   PREFERENCES:
-  - Budget: $${preferences.minPrice} - $${preferences.maxPrice}
+  - Budget: ${preferences.minPrice} - ${preferences.maxPrice} ${preferences.currency}
   - Brand: ${preferences.brandPreference || 'Any'}
   - Performance: ${preferences.processorPerformance} (Gaming: ${preferences.gamingPerformance})
   - Camera/Battery Priority: Camera ${preferences.cameraPriority}, Battery ${preferences.batteryPriority}
@@ -17,6 +17,7 @@ export async function getPhoneRecommendations(preferences: UserPreferences): Pro
   For each phone, return a detailed JSON object. Assign a "matchScore" from 0-100 based on how well it fits.
   Provide 3 pros and 2-3 cons. 
   Identify a "bestUseCase" like "The Multimedia Powerhouse" or "Value King".
+  Ensure the "priceEstimate" field uses the selected currency: ${preferences.currency}.
   Include a realistic "buyLink" to a major retailer (simulated).`;
 
   try {

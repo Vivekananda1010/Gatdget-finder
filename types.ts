@@ -37,6 +37,7 @@ export enum BuildMaterial {
 export interface UserPreferences {
   minPrice: number;
   maxPrice: number;
+  currency: string;
   cameraPriority: PriorityLevel;
   batteryPriority: PriorityLevel;
   gamingPerformance: GamingLevel;
