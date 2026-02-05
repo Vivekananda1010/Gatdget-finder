@@ -1,0 +1,5 @@
+{
+  "name": "PhoneFinder AI",
+  "description": "An AI-powered mobile phone consultant that helps you find the perfect smartphone based on your budget, camera needs, battery preferences, and gaming requirements.",
+  "requestFramePermissions": []
+}
