@@ -1,14 +1,28 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  MessageSquare, 
+  Send, 
+  X, 
+  Bot, 
+  User, 
+  Sparkles, 
+  ChevronDown,
+  Smartphone,
+  Zap,
+  Activity
+} from 'lucide-react';
 import { Chat } from '@google/genai';
-import { ChatMessage, PhoneRecommendation } from '../types';
+import { ChatMessage, PhoneRecommendation, ProductCategory } from '../types';
 import { createAssistantChat } from '../services/geminiService';
 
 interface AIChatAssistantProps {
   recommendations: PhoneRecommendation[];
+  category: ProductCategory;
 }
 
-const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ recommendations }) => {
+const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ recommendations, category }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -16,12 +30,19 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ recommendations }) =>
   const chatRef = useRef<Chat | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const isEarbuds = category === ProductCategory.EARBUDS;
+
   useEffect(() => {
     if (recommendations.length > 0) {
-      chatRef.current = createAssistantChat(recommendations);
-      setMessages([{ role: 'model', text: "Hi! I've analyzed your results. Got questions about these phones?" }]);
+      chatRef.current = createAssistantChat(recommendations, category);
+      setMessages([{ 
+        role: 'model', 
+        text: isEarbuds 
+          ? "Hi! I've analyzed your results. Got questions about these earbuds and their sound profiles?" 
+          : "Hi! I've analyzed your results. Got questions about these phones?" 
+      }]);
     }
-  }, [recommendations]);
+  }, [recommendations, category, isEarbuds]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,56 +69,130 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({ recommendations }) =>
   if (recommendations.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[60]">
-      {isOpen ? (
-        <div className="w-80 md:w-96 h-[450px] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-          <div className="p-4 bg-indigo-600 flex justify-between items-center">
-            <h3 className="text-sm font-bold text-white flex items-center">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-              AI Advisor
-            </h3>
-            <button onClick={() => setIsOpen(false)} className="text-indigo-200 hover:text-white">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex-grow p-4 overflow-y-auto space-y-4">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-xs ${m.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700'}`}>
-                  {m.text}
+    <div className="fixed bottom-8 right-8 z-[60]">
+      {/* Toggle Button */}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.1, y: -5 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-600/40 border border-white/10 group overflow-hidden relative"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+              <X className="w-7 h-7 text-white relative z-10" />
+            </motion.div>
+          ) : (
+            <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
+              <MessageSquare className="w-7 h-7 text-white relative z-10" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {!isOpen && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-950 animate-pulse"></span>
+        )}
+      </motion.button>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.9, x: 20 }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, y: 100, scale: 0.9, x: 20 }}
+            className="absolute bottom-20 right-0 w-80 md:w-[420px] h-[640px] bg-slate-900/80 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="p-8 bg-gradient-to-br from-indigo-600 to-violet-700 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+                    <Bot className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">AI Advisor</h3>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Online & Ready</span>
+                    </div>
+                  </div>
                 </div>
+                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                  <ChevronDown className="w-5 h-5 text-white/70" />
+                </button>
               </div>
-            ))}
-            {isTyping && <div className="text-[10px] text-slate-500 italic">Advisor is thinking...</div>}
-            <div ref={scrollRef}></div>
-          </div>
-          <div className="p-4 border-t border-slate-800 flex space-x-2">
-            <input 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask a follow up..."
-              className="flex-grow bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
-            />
-            <button onClick={handleSend} className="p-2 bg-indigo-600 rounded-xl text-white">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="w-14 h-14 bg-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform active:scale-95"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          </svg>
-        </button>
-      )}
+            </div>
+
+            {/* Messages */}
+            <div className="flex-grow overflow-y-auto p-8 space-y-6 scrollbar-hide">
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex items-end space-x-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-indigo-600' : 'bg-slate-800 border border-white/5'}`}>
+                      {msg.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-indigo-400" />}
+                    </div>
+                    <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === 'user' 
+                      ? 'bg-indigo-600 text-white rounded-br-none shadow-lg shadow-indigo-600/20' 
+                      : 'bg-slate-800/50 text-slate-200 border border-white/5 rounded-bl-none'
+                    }`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <div className="flex space-x-1.5 p-4 bg-slate-800/50 rounded-2xl rounded-bl-none border border-white/5">
+                      <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={scrollRef} />
+            </div>
+
+            {/* Input */}
+            <div className="p-8 pt-0">
+              <div className="relative group">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder={isEarbuds ? "Ask about ANC, sound profile, codecs, battery..." : "Ask about display, camera, performance, battery..."}
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-6 pr-16 text-sm text-white placeholder:text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all group-hover:border-white/10"
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isTyping}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-600/20"
+                >
+                  <Send className="w-4 h-4 text-white" />
+                </button>
+              </div>
+              <p className="text-[9px] text-center text-slate-700 font-black uppercase tracking-[0.2em] mt-6">
+                {isEarbuds ? "AudioFinder" : "PhoneFinder"} Intelligence Engine • v3.0
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

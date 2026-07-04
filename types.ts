@@ -39,7 +39,13 @@ export enum UserKnowledgeLevel {
   EXPERT = 'EXPERT'
 }
 
+export enum ProductCategory {
+  PHONE = 'PHONE',
+  EARBUDS = 'EARBUDS'
+}
+
 export interface UserPreferences {
+  category: ProductCategory;
   knowledgeLevel: UserKnowledgeLevel;
   maxPrice: number;
   currency: string;
@@ -58,6 +64,13 @@ export interface UserPreferences {
   buildQuality: BuildMaterial;
   updatesImportance: PriorityLevel;
   simpleGoals: string[]; // Updated to array for multiple selections
+  
+  // Earbuds-specific expert specs (optional)
+  ancPriority?: PriorityLevel;
+  soundProfile?: string; // 'Balanced' | 'Bass Heavy' | 'Vocal/Treble'
+  fitType?: string; // 'In-Ear' | 'Semi-Open' | 'Bone Conduction'
+  waterResistance?: PriorityLevel; // Importance of IPX rating
+  codecPreference?: string; // 'Standard (SBC/AAC)' | 'High-Res (LDAC/aptX/LDAC)'
 }
 
 export interface Retailer {
